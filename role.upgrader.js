@@ -5,24 +5,55 @@ var roleUpgrader = {
         
 	    if(creep.carry.energy == 0) {
 	        creep.memory.filling = true;
-	        creep.memory.sourceId = null;
 	    } else if(creep.carry.energy == creep.carryCapacity) {
 	        creep.memory.filling = false;
 	    }
+	    var controller = Game.creeps[creep.name].room.controller;
+	    
 	    if(creep.memory.filling) {
-            if(creep.memory.sourceId == null){
-                creep.memory.sourceId = creep.room.controller.pos.findClosestByPath(FIND_SOURCES_ACTIVE).id;
-            }
-            var source = Game.getObjectById(creep.memory.sourceId);
-            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source);
+	        
+            let target = controller.pos.findClosestByPath(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    let b = structure.structureType == STRUCTURE_CONTAINER ||
+                            structure.structureType == STRUCTURE_LINK      || 
+                            structure.structureType == STRUCTURE_STORAGE;
+                    if(creep.room.memory.fullComplement) {
+                        b = b || STRUCTURE_SPAWN || structure.structureType == STRUCTURE_EXTENSION;                    
+                    }        
+                    return b && structure.energy > 0;
+                }
+            }, {ignoreCreeps: true, maxRooms: 1});
+            
+            if(target) {
+                //console.log(creep.name+' '+target);
+        		let retval = creep.withdraw(target, RESOURCE_ENERGY);
+        		if(  retval == ERR_NOT_IN_RANGE ) {
+        		    creep.moveTo(target, {reusePath: 10});
+        		} else if(retval == OK || retval == ERR_BUSY){
+        		} else {
+        		    console.log('UNHANDLED upgrader withdraw error: '+retval);
+        		}
             } else {
-                //console.log('harvesting '+source.id);
+                target = controller.pos.findClosestByPath(FIND_SOURCES, {ignoreCreeps: true, maxRooms: 1});
+                if(target){
+                    let retval = creep.harvest(target); 
+        		    if(  retval == ERR_NOT_IN_RANGE ) {
+        		        creep.moveTo(target, {reusePath: 10});
+        		    } else if(retval == OK || retval == ERR_BUSY){
+        		    } else {
+        		        console.log('UNHANDLED upgrader harvest error: '+retval);
+        		    }            
+                }
             }
-	    } else {
-            if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.room.controller);
-            }
+	    } else if(creep.carry.energy > 0) {
+	        let retval = Game.creeps[creep.name].upgradeController(Game.creeps[creep.name].room.controller);
+    		if(  retval == ERR_NOT_IN_RANGE ) {
+    		    creep.moveTo(Game.creeps[creep.name].room.controller, {reusePath: 10});
+    		} else if(retval == OK){
+    		} else {
+    		    creep.moveTo(Game.creeps[creep.name].room.controller, {reusePath: 10});
+    		    console.log('UNHANDLED upgrader upgrade error: '+retval);
+    		}
 	    }
 	}
 };

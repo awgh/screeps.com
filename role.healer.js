@@ -1,7 +1,7 @@
 var RoleHealer = {
     /** @param {Creep} creep **/
     run: function(creep) {
-        var damagedCreep = creep.pos.findNearest(Game.MY_CREEPS, {
+        let damagedCreep = creep.pos.findNearest(Game.MY_CREEPS, {
             filter: function(object) {
                 return object !== creep && object.hits < object.hitsMax;
             }
@@ -18,7 +18,7 @@ var RoleHealer = {
         	return;
         }
         
-        var guard = creep.pos.findNearest(Game.MY_CREEPS, {
+        let guard = creep.pos.findNearest(Game.MY_CREEPS, {
             filter: function(creep) {
     	        return creep.memory.role === 'guard';
             }

@@ -1,39 +1,43 @@
 var UtilNearest = {
     /** @param {Room} room **/
     source: function(room, x, y, threshold) {
-        var sources = room.find(FIND_SOURCES_ACTIVE);
+        let sources = room.find(FIND_SOURCES);
         //console.log(sources.length);
+        /*
 	    sources.sort(function(a, b) {
-	        var aDeltaX = Math.abs(x - a.pos.x);
-	        var aDeltaY = Math.abs(y - a.pos.y);
-	        var aDelta = Math.sqrt(aDeltaX + aDeltaY);
+	        let aDeltaX = Math.abs(x - a.pos.x);
+	        let aDeltaY = Math.abs(y - a.pos.y);
+	        //var aDelta = Math.sqrt(aDeltaX + aDeltaY);
 	        // ghetto magnitude - avoid SQRT
-	        //var aDelta = aDeltaX + aDeltaY;
+	        let aDelta = aDeltaX + aDeltaY;
 	        
-	        var bDeltaX = Math.abs(x - b.pos.x);
-	        var bDeltaY = Math.abs(y - b.pos.y);
-	        var bDelta = Math.sqrt(bDeltaX + bDeltaY);
-	        //var bDelta = bDeltaX + bDeltaY;
+	        let bDeltaX = Math.abs(x - b.pos.x);
+	        let bDeltaY = Math.abs(y - b.pos.y);
+	        //var bDelta = Math.sqrt(bDeltaX + bDeltaY);
+	        let bDelta = bDeltaX + bDeltaY;
 	        
-	        return aDelta < bDelta;
+	        return aDelta - bDelta;
 	    });
-	    
 	    // default to closest source
-	    var target = sources[0];
+	    */
 	    
-	    // if more than X other creeps are targeting, then pick next closest source
-	    for (var i in sources) {
-	        var count = 0;
-	        for (var j in Game.creeps) {
+	    let target = sources[0];
+	    let targetOpenings = 0;
+	    
+	    // if more than ceiling(threshold * openings) other harvesters are targeting, then pick next source if more openings
+	    for (let i in sources) {
+	        let count = 0;
+	        for (let j in Game.creeps) {
 	            jcreep = Game.creeps[j]
-	            if ( jcreep.memory.sourceId == sources[i].id ) { 
+	            if ( jcreep.memory.role == 'harvester' && jcreep.memory.sourceId == sources[i].id ) { 
 	                count++;
 	            }
 	        }
-	        if (count < threshold) { 
+	        let sos = jcreep.room.memory.sourceOpenings[sources[i].id];
+	        let to = Math.ceil(threshold * sos ) - count;
+	        if(to > targetOpenings) {
+	            targetOpenings = to;
 	            target = sources[i];
-	            console.log(sources[i].pos.x+','+sources[i].pos.y+' has count: '+count);
-	            break;
 	        }
 	    }
 	    return target.id; 
